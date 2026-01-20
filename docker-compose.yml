@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: influencer-offers-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./data/influencer_offers.db
+      - BACKEND_CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]
+    volumes:
+      # Mount database directory for persistence
+      - ./data:/app/data
+      # Mount app code for development (optional - comment out for production)
+      - ./app:/app/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
