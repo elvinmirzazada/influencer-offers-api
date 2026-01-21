@@ -46,27 +46,7 @@ influencer-offers-api/
 
 ## Setup
 
-### Option 1: Docker (Recommended) 🐳
-
-The easiest way to run the API is using Docker:
-
-```bash
-# Build and start the container
-docker-compose up -d
-
-# Seed the database (optional)
-docker-compose exec api python seed_data.py
-
-# View logs
-docker-compose logs -f
-
-# Stop the container
-docker-compose down
-```
-
-The API will be available at `http://localhost:8000`
-
-### Option 2: Local Development
+### Local Development
 
 ### 1. Create a virtual environment:
 ```bash
@@ -115,10 +95,9 @@ API documentation will be available at `http://localhost:8000/docs`
 - **API Endpoints**: Handle HTTP requests/responses - use services
 
 ### Key Design Decisions:
-1. **TimestampMixin**: All models extend a base mixin for `created_at` and `updated_at`
-2. **TimestampSchema**: Response schemas extend a base schema for timestamps
-3. **Repository Pattern**: Database operations are isolated from business logic
-4. **Service Layer**: Complex payout calculations and business rules
+1. **TimestampSchema**: Response schemas extend a base schema for timestamps
+2. **Repository Pattern**: Database operations are isolated from business logic
+3. **Service Layer**: Complex payout calculations and business rules
 
 ## API Endpoints
 
@@ -130,6 +109,7 @@ API documentation will be available at `http://localhost:8000/docs`
 - **PUT** `/api/v1/offers/{offer_id}` - Update an offer
 - **DELETE** `/api/v1/offers/{offer_id}` - Delete an offer
 - **GET** `/api/v1/offers/influencer/{influencer_id}` - List offers for specific influencer
+- **GET** `/api/v1/influencers` - List influencers
 
 ### Examples
 
@@ -180,7 +160,7 @@ curl "http://localhost:8000/api/v1/offers/?title=Gaming"
 ### Custom Payout Precedence:
 - If a custom payout exists for an influencer, it **completely overrides** the base payout
 - Country overrides are **not applied** to custom payouts
-- Example: If base is "$20 CPA" with DE override "$30", but influencer has custom "$1000 Fixed", they only see "$1000 Fixed"
+- Example: If base is "\$20" CPA with DE override "\$30", but influencer has custom "\$1000 Fixed", they only see "\$1000 Fixed"
 
 ## Running Tests
 
