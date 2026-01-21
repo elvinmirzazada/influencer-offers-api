@@ -11,6 +11,7 @@ Backend API for the Influencer Offers system built with FastAPI.
 - ✅ **Influencer View**: List offers with personalized payout information
 - ✅ **Search Functionality**: Search offers by title
 - ✅ **Clean Architecture**: Repository pattern with separate business logic layer
+- ✅ **Dockerized**: Production-ready Docker setup with docker-compose
 
 ## Project Structure
 
@@ -42,31 +43,72 @@ influencer-offers-api/
 │   └── test_offers.py
 ├── seed_data.py          # Script to populate sample data
 └── requirements.txt      # Python dependencies
+└── Dockerfile            # Dockerfile
+└── docker-compose.yml    # Docker Compose configuration
 ```
 
 ## Setup
 
-### Local Development
+### Option 1: Docker (Recommended)
 
-### 1. Create a virtual environment:
+#### Prerequisites
+- Docker installed on your system
+- Docker Compose installed
+
+#### Quick Start
+
+1. **Clone the repository and navigate to the project:**
+```bash
+cd influencer-offers-api
+```
+
+2. **Create data directory (for persistent database):**
+```bash
+mkdir -p data
+```
+
+3. **Build and run with Docker Compose:**
+```bash
+docker-compose up -d
+```
+
+The API will be available at `http://localhost:8000`
+
+API documentation will be available at `http://localhost:8000/docs`
+
+4. **(Optional) Seed the database with sample data:**
+```bash
+docker-compose exec api python seed_data.py
+```
+
+This will create:
+- 3 sample influencers (Alice, Bob, Carol)
+- 4 sample offers with different payout types
+- 2 custom payouts for specific influencers
+
+---
+
+### Option 2: Local Development (Without Docker)
+
+#### 1. Create a virtual environment:
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-### 2. Install dependencies:
+#### 2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Create a `.env` file:
+#### 3. Create a `.env` file:
 ```bash
 cp .env.example .env
 ```
 
 Or the `.env` file is already created with default values.
 
-### 4. (Optional) Seed the database with sample data:
+#### 4. (Optional) Seed the database with sample data:
 ```bash
 python seed_data.py
 ```
@@ -76,7 +118,7 @@ This will create:
 - 4 sample offers with different payout types
 - 2 custom payouts for specific influencers
 
-### 5. Run the application:
+#### 5. Run the application:
 ```bash
 uvicorn app.main:app --reload
 ```

@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: influencer-offers-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./data/influencer_offers.db
+      - API_V1_STR=/api/v1
+      - PROJECT_NAME=Influencer Offers API
+      - BACKEND_CORS_ORIGINS=["http://localhost:3000", "http://localhost:5173"]
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+
