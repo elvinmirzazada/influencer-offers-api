@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -10,6 +11,7 @@ from app.schemas.offer import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/", response_model=OfferResponse, status_code=201)
@@ -25,12 +27,17 @@ def create_offer(
     - **categories**: List of categories (Gaming, Tech, Health, Nutrition, Fashion, Finance)
     - **payout**: Payout configuration (CPA, Fixed, or CPA+Fixed)
     """
+    logger.info(f"Creating new offer: {offer_data.title}")
     try:
         service = OfferService(db)
-        return service.create_offer(offer_data)
+        offer = service.create_offer(offer_data)
+        logger.info(f"Offer created successfully with ID: {offer.id}")
+        return offer
     except ValueError as e:
+        logger.warning(f"Validation error creating offer: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        logger.error(f"Error creating offer: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
@@ -42,10 +49,13 @@ def get_offer(
     """
     Get an offer by ID.
     """
+    logger.info(f"Fetching offer with ID: {offer_id}")
     service = OfferService(db)
     offer = service.get_offer(offer_id)
     if not offer:
+        logger.warning(f"Offer not found: {offer_id}")
         raise HTTPException(status_code=404, detail="Offer not found")
+    logger.info(f"Offer retrieved successfully: {offer_id}")
     return offer
 
 
@@ -63,10 +73,19 @@ def list_offers(
     - **limit**: Maximum number of records to return
     - **title**: Optional search by title
     """
+    if title:
+        logger.info(f"Searching offers by title: '{title}' (skip={skip}, limit={limit})")
+    else:
+        logger.info(f"Listing all offers (skip={skip}, limit={limit})")
+
     service = OfferService(db)
     if title:
-        return service.search_offers_by_title(title, skip, limit)
-    return service.list_offers(skip, limit)
+        result = service.search_offers_by_title(title, skip, limit)
+    else:
+        result = service.list_offers(skip, limit)
+
+    logger.info(f"Returning {len(result.offers)} offers (total: {result.total})")
+    return result
 
 
 @router.put("/{offer_id}", response_model=OfferResponse)
@@ -80,15 +99,20 @@ def update_offer(
 
     All fields are optional. Only provided fields will be updated.
     """
+    logger.info(f"Updating offer with ID: {offer_id}")
     try:
         service = OfferService(db)
         offer = service.update_offer(offer_id, offer_data)
         if not offer:
+            logger.warning(f"Offer not found for update: {offer_id}")
             raise HTTPException(status_code=404, detail="Offer not found")
+        logger.info(f"Offer updated successfully: {offer_id}")
         return offer
     except ValueError as e:
+        logger.warning(f"Validation error updating offer {offer_id}: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        logger.error(f"Error updating offer {offer_id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
@@ -100,10 +124,13 @@ def delete_offer(
     """
     Delete an offer.
     """
+    logger.info(f"Deleting offer with ID: {offer_id}")
     service = OfferService(db)
     success = service.delete_offer(offer_id)
     if not success:
+        logger.warning(f"Offer not found for deletion: {offer_id}")
         raise HTTPException(status_code=404, detail="Offer not found")
+    logger.info(f"Offer deleted successfully: {offer_id}")
     return None
 
 
@@ -127,6 +154,9 @@ def list_offers_for_influencer(
     - **limit**: Maximum number of records to return
     - **title**: Optional search by title
     """
+    logger.info(f"Fetching offers for influencer {influencer_id} (skip={skip}, limit={limit}, title={title})")
     service = OfferService(db)
-    return service.list_offers_for_influencer(influencer_id, title, skip, limit)
+    result = service.list_offers_for_influencer(influencer_id, title, skip, limit)
+    logger.info(f"Returning {len(result.offers)} offers for influencer {influencer_id}")
+    return result
 

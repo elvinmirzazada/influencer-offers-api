@@ -1,3 +1,4 @@
+import logging
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
@@ -8,6 +9,8 @@ from app.schemas.offer import (
     InfluencerOfferResponse, InfluencerOfferListResponse, InfluencerOfferPayoutInfo
 )
 from app.models.offer import Offer, PayoutType, CategoryEnum
+
+logger = logging.getLogger(__name__)
 
 
 class OfferService:
@@ -20,12 +23,15 @@ class OfferService:
 
     def create_offer(self, offer_data: OfferCreate) -> OfferResponse:
         """Create a new offer."""
+        logger.debug(f"Validating payout for new offer: {offer_data.title}")
         # Validate payout data based on type
         self._validate_payout(offer_data.payout.payout_type,
                             offer_data.payout.cpa_amount,
                             offer_data.payout.fixed_amount)
 
+        logger.debug(f"Creating offer in database: {offer_data.title}")
         offer = self.offer_repo.create(offer_data)
+        logger.info(f"Offer created in service: ID={offer.id}, Title={offer.title}")
         return self._convert_to_response(offer)
 
     def get_offer(self, offer_id: int) -> Optional[OfferResponse]:
@@ -83,11 +89,14 @@ class OfferService:
         List offers from the perspective of a specific influencer.
         Custom payouts take precedence over base payouts.
         """
+        logger.debug(f"Checking if influencer exists: {influencer_id}")
         # Verify influencer exists
         influencer = self.influencer_repo.get_by_id(influencer_id)
         if not influencer:
+            logger.warning(f"Influencer not found: {influencer_id}")
             return InfluencerOfferListResponse(offers=[], total=0)
 
+        logger.debug(f"Fetching offers for influencer {influencer_id}")
         # Get offers (with optional title filter)
         if title:
             offers = self.offer_repo.get_by_title(title, skip, limit)
@@ -96,6 +105,7 @@ class OfferService:
             offers = self.offer_repo.get_all(skip, limit)
             total = self.offer_repo.count_all()
 
+        logger.debug(f"Converting {len(offers)} offers to influencer-specific responses")
         # Convert to influencer-specific responses
         influencer_offers = []
         for offer in offers:
